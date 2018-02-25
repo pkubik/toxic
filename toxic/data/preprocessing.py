@@ -47,7 +47,7 @@ def prepare_data(filenames: list, data_dir: Path, train_fraction=1.0):
     log.info("Storing valid tags for the test set")
     whole_test_df = pd.concat(test_dfs)
     assert(isinstance(whole_test_df, pd.DataFrame))
-    whole_test_df.to_csv(data_dir / utils.TEST_CSV_SUBPATH, columns=['id', 'author'], index=False)
+    whole_test_df.to_csv(data_dir / utils.TEST_CSV_SUBPATH, columns=['id'] + utils.CLASSES, index=False)
     log.info("Storing direct embeddings")
     word_encoder.store_direct_embeddings()
 
@@ -64,8 +64,8 @@ def string_feature(value: str) -> tf.train.Feature:
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value.encode()]))
 
 
-def int_feature(value: int) -> tf.train.Feature:
-    return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+def int_list_feature(values: list) -> tf.train.Feature:
+    return tf.train.Feature(int64_list=tf.train.Int64List(value=values))
 
 
 def store_tfrecords_from_df(name: str,
@@ -89,8 +89,8 @@ def store_tfrecords_from_df(name: str,
                 str(output_dir / '{}{:04d}.tfrecords'.format(name, file_number)))
         features = {
             'id': string_feature(row['id']),
-            'author': int_feature(utils.CLASSES.index(row['author']))
+            'classes': int_list_feature([int(row[cls]) for cls in utils.CLASSES])
         }
-        features.update(encoded_string_features_dict('text', row['text'], word_encoding))
+        features.update(encoded_string_features_dict('text', row['comment_text'], word_encoding))
         example = tf.train.Example(features=tf.train.Features(feature=features))
         record_writer.write(example.SerializeToString())

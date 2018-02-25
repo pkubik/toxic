@@ -51,11 +51,11 @@ def parse_examples_batch(examples_batch):
             'id': tf.FixedLenFeature([], dtype=tf.string),
             'text': tf.FixedLenSequenceFeature([], dtype=tf.int64, allow_missing=True),
             'text_length': tf.FixedLenFeature([], dtype=tf.int64),
-            'author': tf.FixedLenFeature([], dtype=tf.int64)
+            'classes': tf.FixedLenFeature([len(utils.CLASSES)], dtype=tf.int64)
         })
     features = {key: example_fields[key]
                 for key in ['id', 'text', 'text_length']}
-    labels = {key: example_fields[key] for key in ['author']}
+    labels = {key: example_fields[key] for key in ['classes']}
     return features, labels
 
 
@@ -106,7 +106,7 @@ def create_prediction_input_arrays(df: pd.DataFrame, word_encoding: dict):
     max_text_length = 0
     for _, row in df.iterrows():
         ids.append(str(row.id))
-        encoded_text = utils.encode_text(row.text, word_encoding)
+        encoded_text = utils.encode_text(row.comment_text, word_encoding)
         texts.append(encoded_text)
         max_text_length = max(max_text_length, len(encoded_text))
     text_array = encode_as_array(texts, max_text_length)

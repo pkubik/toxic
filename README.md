@@ -1,13 +1,13 @@
-# Horror authors prediction
+# Toxic Comment Classification
 
 **Tensorflow** model for solving a problem specified at a [Kaggle](https://www.kaggle.com/)
-problem [Spooky Author Identification](https://www.kaggle.com/c/spooky-author-identification).
+problem [Toxic Comment Classification](https://www.kaggle.com/c/jigsaw-toxic-comment-classification-challenge).
 
 The pipeline assumes that there exists a data directory pointed by a `RESEARCH_DATA_DIR`
 environment variable which maintains following structure:
 
 - `$RESEARCH_DATA_DIR`
-  - `stackexchange`
+  - `toxic`
     - `preproc`
         - `train` (preprocessed training data in *TFRecords* format)
         - `test` (preprocessed test data in TFRecords format)
@@ -23,7 +23,7 @@ environment variable which maintains following structure:
 
 In order to run the preprocessing invoke following command from the repository root:
 ```
-> python3 -m horror.data.prepare
+> python3 -m toxic.data.prepare
 ```
 
 Train and evaluate the module using the main module directly. You might use multiple models
@@ -32,9 +32,9 @@ will further train or evaluate this model. An environment variable `TF_MODELS_DI
 be defined in order to store models data in specific directory. Otherwise system-specific
 temporary directory will be used.
 ```
-> python3 -m horror train -n xyz
+> python3 -m toxic train -n xyz
 ... (training logs) ...
 
-> python3 -m horror test -n xyz
+> python3 -m toxic test -n xyz
 ... (evaluation report) ...
 ```

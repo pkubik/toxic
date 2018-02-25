@@ -15,7 +15,7 @@ MIN_AFTER_DEQUEUE = 1024
 PARAMS_FILENAME = 'params.json'
 MODELS_DIR_VARIABLE_NAME = 'TENSORFLOW_MODELS_DIR'
 DATA_DIR_VARIABLE_NAME = 'RESEARCH_DATA_DIR'
-PROBLEM_SUBDIR = 'horror'
+PROBLEM_SUBDIR = 'toxic'
 PREPROCESSED_DATA_SUBDIR = Path('preproc')
 TRAIN_DATA_SUBDIR = PREPROCESSED_DATA_SUBDIR / 'train'
 TEST_DATA_SUBDIR = PREPROCESSED_DATA_SUBDIR / 'test'
@@ -28,7 +28,14 @@ UNKNOWN_WORD_CODE = -1
 EOS_TAG = '</s>'
 SEQUENCE_LENGTH_LIMIT = 1280
 
-CLASSES = ['EAP', 'HPL', 'MWS']
+CLASSES = [
+    'toxic',
+    'severe_toxic',
+    'obscene',
+    'threat',
+    'insult',
+    'identity_hate'
+]
 
 
 def load_embedding_model(data_dir: Path):
@@ -73,6 +80,8 @@ def store_vocab(words, data_dir: Path):
         return vec.astype(np.float32)
 
     vectors = [get_vector(w) for w in words]
+
+    # noinspection PyTypeChecker
     np.save(direct_embeddings_path, vectors)
 
 
