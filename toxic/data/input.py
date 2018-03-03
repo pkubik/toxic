@@ -9,33 +9,29 @@ import toxic.data.utils as utils
 import logging
 
 EMBEDDING_SIZE = 300
-FILENAME_INPUT_PRODUCER_SEED = 1
 RECORDS_FILE_EXTENSION = '.tfrecords'
 
 log = logging.getLogger(__name__)
 
 
 def create_input_fn(data_subdir: Path, batch_size: int, for_train=True, num_epochs=1):
+    shuffle_buffer_size = utils.MIN_AFTER_DEQUEUE + 5 * batch_size
     input_files = all_records_files(data_subdir)
 
     def input_fn():
-        filename_queue = tf.train.string_input_producer(input_files, num_epochs=num_epochs,
-                                                        seed=FILENAME_INPUT_PRODUCER_SEED)
-
-        reader = tf.TFRecordReader()
-        _, serialized_example = reader.read(filename_queue)
-
+        input_files_array = np.array(input_files)
         if for_train:
-            examples_batch = tf.train.shuffle_batch(
-                [serialized_example], batch_size=batch_size, num_threads=3,
-                capacity=utils.MIN_AFTER_DEQUEUE + 5 * batch_size,
-                min_after_dequeue=utils.MIN_AFTER_DEQUEUE)
-        else:
-            examples_batch = tf.train.batch(
-                [serialized_example], batch_size=batch_size, num_threads=3,
-                capacity=5 * batch_size, allow_smaller_final_batch=True)
+            np.random.shuffle(input_files_array)
 
-        return parse_examples_batch(examples_batch)
+        dataset = tf.data.TFRecordDataset(input_files_array)
+        if for_train:
+            dataset = dataset.shuffle(shuffle_buffer_size)
+        dataset = dataset.batch(batch_size)
+        dataset = dataset.repeat(num_epochs)
+        dataset = dataset.map(parse_examples_batch)
+
+        iterator = dataset.make_one_shot_iterator()
+        return iterator.get_next()
 
     return input_fn
 
