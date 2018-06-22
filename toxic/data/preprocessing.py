@@ -12,9 +12,10 @@ log = logging.getLogger(__name__)
 
 INDEX_FILENAME = 'index.csv'
 NUM_EXAMPLES_PER_RECORDS_FILE = 2000
+LABEL_COLUMNS = ['toxic', 'severe_toxic', 'obscene', 'threat', 'insult', 'identity_hate']
 
 
-def prepare_data(filenames: list, data_dir: Path, train_fraction=1.0):
+def prepare_data(filenames: list, data_dir: Path, train_fraction=1.0, fixed_seed=True):
     input_dir = data_dir / utils.RAW_DATA_SUBDIR
     train_dir = data_dir / utils.TRAIN_DATA_SUBDIR
     test_dir = data_dir / utils.TEST_DATA_SUBDIR
@@ -24,6 +25,9 @@ def prepare_data(filenames: list, data_dir: Path, train_fraction=1.0):
 
     word_encoder = utils.WordEncoder(data_dir)
     test_dfs = []
+
+    if fixed_seed:
+        np.random.seed(1)
 
     for filename in filenames:
         log.info("Preprocessing file '{}'".format(filename))
@@ -35,8 +39,9 @@ def prepare_data(filenames: list, data_dir: Path, train_fraction=1.0):
         if train_fraction == 1.0:
             train_df = df
         else:
-            np.random.seed(0)
-            train_df = df.sample(frac=train_fraction)
+            train_df = df.groupby(LABEL_COLUMNS, group_keys=False).apply(
+                lambda x: x.sample(int(len(x) * train_fraction)))
+            train_df = train_df.sample(frac=1)
 
         store_tfrecords_from_df(name, word_encoder, train_df, train_dir)
         if train_fraction < 1.0:

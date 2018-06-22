@@ -13,8 +13,8 @@ class ConfusionMatrix(np.ndarray):
         obj = np.zeros([2, 2], dtype=np.int32).view(cls)
         return obj
 
-    def __init__(self):
-        pass
+    def __init__(self, shape):
+        super().__init__(shape)
 
     @property
     def true_positive(self):

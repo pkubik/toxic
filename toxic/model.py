@@ -111,8 +111,20 @@ def build_model(mode: tf.estimator.ModeKeys,
                 prediction,
                 name='accuracy')
 
+            precision = tf.metrics.precision(
+                labels.classes,
+                prediction,
+                name='precision')
+
+            recall = tf.metrics.recall(
+                labels.classes,
+                prediction,
+                name='recall')
+
             eval_metric_ops = {
-                'accuracy': accuracy
+                'accuracy': accuracy,
+                'precision': precision,
+                'recall': recall
             }
 
     prediction = {
