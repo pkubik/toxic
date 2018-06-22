@@ -121,10 +121,16 @@ def build_model(mode: tf.estimator.ModeKeys,
                 prediction,
                 name='recall')
 
+            auc = tf.metrics.auc(
+                labels.classes,
+                scores,
+                name='auc')
+
             eval_metric_ops = {
                 'accuracy': accuracy,
                 'precision': precision,
-                'recall': recall
+                'recall': recall,
+                'auc': auc
             }
 
     prediction = {
