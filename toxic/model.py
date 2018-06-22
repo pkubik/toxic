@@ -67,12 +67,11 @@ def build_model(mode: tf.estimator.ModeKeys,
         features.text = tf.placeholder_with_default(features.text, [None, None], 'text')  # (B, L)
         features.text_length = tf.placeholder_with_default(features.text_length, [None], 'text_length')  # (B)
 
-    global_step = tf.contrib.framework.get_global_step()
+    global_step = tf.train.get_global_step()
 
     with tf.device("/cpu:0"):
         embeddings = tf.placeholder(tf.float32, [None, EMBEDDING_SIZE], name='embeddings')  # (V, E); V - vocabulary
-
-    embedded_text = tf.nn.embedding_lookup(embeddings, tf.nn.relu(features.text))  # (B, L) -> (B, L, E)
+        embedded_text = tf.nn.embedding_lookup(embeddings, tf.nn.relu(features.text))  # (B, L) -> (B, L, E)
 
     with tf.variable_scope("encoder"):
         final_embedding = tf.reduce_sum(embedded_text, -2)  # (B, L, E) -> (B, E)
@@ -99,14 +98,12 @@ def build_model(mode: tf.estimator.ModeKeys,
 
         loss = tf.losses.get_total_loss()  # get sum of all explicitly defined losses and regularization losses
 
-        learning_rate = tf.train.exponential_decay(params.learning_rate, global_step,
-                                                   12000, 0.5, staircase=False)
+        learning_rate = params.learning_rate * 0.01 + tf.train.exponential_decay(
+            params.learning_rate, global_step,
+            12000, 0.5, staircase=False)
         tf.summary.scalar('learning_rate', learning_rate)
-        train_op = tf.contrib.layers.optimize_loss(
-            loss=loss,
-            global_step=global_step,
-            learning_rate=learning_rate,
-            optimizer="Adam")
+        optimizer = tf.train.AdamOptimizer(learning_rate)
+        train_op = optimizer.minimize(loss, global_step)
 
         if mode == tf.estimator.ModeKeys.EVAL:
             accuracy = tf.metrics.accuracy(

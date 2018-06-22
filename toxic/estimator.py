@@ -32,11 +32,11 @@ class Estimator:
         self.params['max_word_idx'] = len(self.vocabulary)
 
         # Create estimator
-        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.7)
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
         config = tf.estimator.RunConfig().replace(
             session_config=tf.ConfigProto(gpu_options=gpu_options),
             keep_checkpoint_max=30,
-            log_step_count_steps=200)
+            log_step_count_steps=500)
         self._estimator = tf.estimator.Estimator(model_fn, model_dir=str(model_dir), params=self.params, config=config)
 
         self.embedding_matrix = du.load_embeddings_matrix(self.data_dir)
